@@ -2,12 +2,13 @@ from PIL import Image
 import numpy as np
 from tqdm import tqdm
 import pandas as pd
+import sys
 
 LABEL_PATH = 'data/labels.csv'
 DEST_PATH = 'data/'
 SAMPLE_PATH = 'data/sample_submission.csv'
 
-
+sys.setrecursionlimit(10000)  # for pickle...
 df = pd.read_csv(LABEL_PATH)
 df.head()
 
@@ -30,6 +31,7 @@ for i in tqdm(range(n)):
 
 import random
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 plt.figure(figsize=(12, 6))
 for i in range(8):
@@ -73,17 +75,11 @@ model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 h = model.fit(features, y, batch_size=128, epochs=10, validation_split=0.1)
-
-try:
-    import cPickle as pickle
-except ImportError:  # Python 3
-    import pickle
-with open('net.pickle', 'wb') as f:
-    pickle.dump(model, f, -1)
+model.save('net.h5')
 
 filename = open('model_loss.csv', 'wb')
 np.savetxt(filename, h.history['loss'])
-np.savetxt(filename, h.history['val_losss'])
+np.savetxt(filename, h.history['val_loss'])
 np.savetxt(filename, h.history['acc'])
 np.savetxt(filename, h.history['val_acc'])
 
@@ -92,6 +88,7 @@ from keras.utils import plot_model
 plot_model(model, to_file='model.jpg')
 
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 plt.figure(figsize=(10, 4))
 plt.subplot(1, 2, 1)
